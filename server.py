@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import pandas as pd
 from flask import Flask, request
 from hierarchical_clustering import HierarchicalClustering
 from distance_measures import lcs_distance
@@ -67,8 +68,20 @@ def showall():
         for cluster_id, sample_ids in hc.clusters.items():
             print('cluster {}'.format(cluster_id))
             for sample_id in sample_ids:
-                print(sample_id, hc.samples[sample_id].title)
+                print(sample_id, hc.samples[sample_id].raw_title)
         print()
+        cluster_ids, sample_ids, titles, raw_titles =[], [], [], []
+        fake_cluster_ids = list(hc.clusters.keys())
+        for cluster_id in fake_cluster_ids:
+            sample_ids.extend(hc.clusters[cluster_id])
+            cluster_ids.extend([cluster_id] * len(hc.clusters[cluster_id]))
+            titles.extend([hc.samples[sample_id].title for sample_id in hc.clusters[cluster_id]])
+            raw_titles.extend([hc.samples[sample_id].raw_title for sample_id in hc.clusters[cluster_id]])
+        df = pd.DataFrame({'sample_id': sample_ids,
+                           'title': titles,
+                           'raw_title': raw_titles,
+                           'cluster_id': cluster_ids})
+        df.to_excel('新闻聚类_{}.xls'.format(hc.name), sheet_name=hc.name)
     return 'Done'
 
 

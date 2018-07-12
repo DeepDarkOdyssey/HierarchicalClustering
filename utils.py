@@ -3,6 +3,7 @@
 import re
 import json
 import urllib
+from string import punctuation
 from munch import Munch
 
 
@@ -19,6 +20,14 @@ def get_title_content(fpath):
 
 
 def word_segment_own(string):
+    """输入一个字符串, 返回其分词后得到的list
+
+    Args:
+        string: 一个str, 需要分词的字符串
+
+    Returns:
+
+    """
     url_get_base = "http://10.200.7.53:7022/wordsegment/segment?"
     args = {
             'analyzer': '4',
@@ -42,14 +51,18 @@ def preprocess(raw_samples, segmentation=False, stopwords=[]):
     samples = []
     for raw_sample in raw_samples:
         i = raw_sample['id']
-        title = raw_sample['title']
-        title = re.sub('\d|\ufeff', '', title)
+        raw_title = raw_sample['title']
+        # table = str.maketrans({key: None for key in punctuation})
+        # title = title.translate(table)
+        # title = re.sub('\d|\ufeff', '', title)
+        title = remove_punctuation(raw_title)
         if segmentation:
             segmented_title = word_segment_own(title)
             segmented_title = [token for token in segmented_title if token not in stopwords]
         else:
             segmented_title = []
-        sample_dict = {'id': i, 'title': title, 'seg_title': segmented_title, 'cluster_id': None, 'distance2samples': {}}
+        sample_dict = {'id': i, 'raw_title': raw_title, 'title': title, 'seg_title': segmented_title,
+                       'cluster_id': None, 'distance2samples': {}}
         sample = Munch(sample_dict)
         samples.append(sample)
 
@@ -64,6 +77,11 @@ def load_stopwords(file_path):
             if line == '':
                 break
             stopwords.append(line.strip())
-    stopwords.extend(['年', '月', '日', ' '])
+    stopwords.extend(['年', '月', '日', '月日', '年月日', ' '])
     return stopwords
 
+
+def remove_punctuation(string):
+    pattern = re.compile(r"[^a-zA-Z\u4e00-\u9fa5]")
+    string = re.sub(pattern, '', string)
+    return string
