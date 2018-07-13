@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-import re
-import os
 import time
 import pickle
 import logging
-from utils import word_segment_own, get_title_content, preprocess
-from distance_measures import jaccard_distance, lcs_distance
 from munch import Munch
 
 
@@ -176,16 +172,8 @@ class HierarchicalClustering(object):
                         self.id2bucket[sample.id].append(token)
 
     def compute_sample_distance(self, s1, s2):
-        """计算两个sample之间的距离
+        """计算两个sample之间的距离"""
 
-        Args:
-            s1: 一个sample
-            s2: 另一个sample, sample的数据结构见add_samples的doc_string
-
-        Returns:
-            一个float代表两个sample之间的距离，0最小1最大
-
-        """
         # 查询两个sample之间是否互相计算过距离，是的话省略计算步骤
         if s2.id in s1.distance2samples:
             dist = s1.distance2samples[s2.id]
@@ -218,7 +206,9 @@ class HierarchicalClustering(object):
 
         Args:
             c1: 一个cluster
-            c2: 另一个cluster
+            c2: 另一个cluster, cluster的结构为：
+                {'id': cluster_id(int), 'sample_ids': [id1, id2, ...](list of int), 'distance2clusters': {}}
+
 
         Returns:
             一个float代表两个cluster之间的距离，0最小1最大
@@ -308,16 +298,8 @@ class HierarchicalClustering(object):
         return cluster_pairs[:self.close_num]
 
     def merge_cluster_pair(self, c1, c2):
-        """合并两个cluster
+        """将输入的两个cluster合并后返回"""
 
-        Args:
-            c1: 一个cluster
-            c2: 另一个cluster
-
-        Returns:
-            合并后的一个新的cluster
-
-        """
         new_cluster_id = self.current_cluster_id    # 先获取要创建的新cluster的id
         new_cluster = Munch(id=new_cluster_id, sample_ids=[], distance2clusters={})
         # 将要合并的两个cluster对应的sample_id, distance2clusters从模型中删除并加入到新的cluster中
@@ -348,10 +330,10 @@ class HierarchicalClustering(object):
         """将输入的sample加入模型并迭代到收敛，返回本次训练中cluster发生变化的sample
 
         Args:
-            samples:
+            samples: list of samples, sample的结构见self.add_samples()的doc string
 
         Returns:
-
+            一个set, 记录在本次训练中cluster发生变化的所有sample的id
         """
         # initialize new clusters with each new sample
         self.add_samples(samples)

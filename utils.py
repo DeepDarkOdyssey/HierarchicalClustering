@@ -20,14 +20,6 @@ def get_title_content(fpath):
 
 
 def word_segment_own(string):
-    """输入一个字符串, 返回其分词后得到的list
-
-    Args:
-        string: 一个str, 需要分词的字符串
-
-    Returns:
-
-    """
     url_get_base = "http://10.200.7.53:7022/wordsegment/segment?"
     args = {
             'analyzer': '4',
@@ -48,6 +40,16 @@ def word_segment_own(string):
 
 
 def preprocess(raw_samples, segmentation=False, stopwords=[]):
+    """输入原始的samples，将其进行预处理、分词后返回
+
+    Args:
+        raw_samples: list of dict, 每个dict为一个原始的sample，每个sample至少包含两个key: 'id'和'title'
+        segmentation: bool，是否分词
+        stopwords: list of str, 停用词表
+
+    Returns:
+        处理后的samples, 每个sample添加了额外的'seg_title', 'cluster_id' 和 'distance2samples'的key
+    """
     samples = []
     for raw_sample in raw_samples:
         i = raw_sample['id']
@@ -70,6 +72,8 @@ def preprocess(raw_samples, segmentation=False, stopwords=[]):
 
 
 def load_stopwords(file_path):
+    """从指定文件路径读取停用词"""
+
     stopwords = []
     with open(file_path) as f:
         while True:
@@ -82,6 +86,8 @@ def load_stopwords(file_path):
 
 
 def remove_punctuation(string):
+    """去除所有的标点等特殊符号，只保留输入的str中的英文大小写字母，中文字符并返回"""
+
     pattern = re.compile(r"[^a-zA-Z\u4e00-\u9fa5]")
     string = re.sub(pattern, '', string)
     return string

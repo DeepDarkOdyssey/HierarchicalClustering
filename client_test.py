@@ -21,7 +21,7 @@ url = 'http://127.0.0.1:10000/'
 r = requests.get(url)
 print(r.text)
 
-df = pd.DataFrame.from_csv('real_news.csv')
+df = pd.DataFrame.read_csv('real_news.csv')
 for model_name, sub_df in df.groupby('model_name'):
     samples = sub_df.to_dict('records')
     json_string = json.dumps(samples, ensure_ascii=False)
